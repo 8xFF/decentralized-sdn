@@ -1,4 +1,4 @@
-FROM ubuntu:22.04 as base
+FROM ubuntu:24.04 as base
 ARG TARGETPLATFORM
 COPY . /tmp
 WORKDIR /tmp
@@ -14,7 +14,7 @@ RUN case $TARGETPLATFORM in \
     mv /tmp/$BUILD/atm0s-sdn-standalone-$BUILD /atm0s-sdn-standalone; \
     chmod +x /atm0s-sdn-standalone
 
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 COPY --from=base /atm0s-sdn-standalone /atm0s-sdn-standalone
 

@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.5](https://github.com/8xFF/atm0s-sdn/compare/atm0s-sdn-v0.2.4...atm0s-sdn-v0.2.5) - 2024-11-29
+
+### Fixed
+
+- avoid send wrong hops with router-sync local services ([#184](https://github.com/8xFF/atm0s-sdn/pull/184))
+
 ## [0.2.4](https://github.com/8xFF/atm0s-sdn/compare/atm0s-sdn-v0.2.3...atm0s-sdn-v0.2.4) - 2024-11-26
 
 ### Added

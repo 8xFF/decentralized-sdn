@@ -1,6 +1,6 @@
 [package]
 name = "atm0s-sdn"
-version = "0.2.4"
+version = "0.2.5"
 edition = "2021"
 repository = "https://github.com/8xFF/atm0s-sdn"
 description = "Decentralized Ultra-Low-Latency Software Defined Network"
@@ -12,8 +12,8 @@ license = "MIT"
 thiserror = { workspace = true }
 sans-io-runtime = { workspace = true, features = ["poll-backend", "polling-backend", "udp"] }
 atm0s-sdn-identity = { path = "../core/identity", version = "0.3.1" }
-atm0s-sdn-router = { path = "../core/router", version = "0.2.3" }
-atm0s-sdn-network = { path = "../network", version = "0.6.1" }
+atm0s-sdn-router = { path = "../core/router", version = "0.2.4" }
+atm0s-sdn-network = { path = "../network", version = "0.6.2" }
 
 convert-enum = { workspace = true }
 num_enum = { workspace = true }

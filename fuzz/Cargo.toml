@@ -9,7 +9,7 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4"
-atm0s-sdn-network = { path = "../packages/network", version = "0.6.1", features = ["fuzz"] }
+atm0s-sdn-network = { path = "../packages/network", version = "0.6.2", features = ["fuzz"] }
 
 [[bin]]
 name = "network_control_pkt"

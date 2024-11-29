@@ -1,6 +1,6 @@
 [package]
 name = "atm0s-sdn-network"
-version = "0.6.1"
+version = "0.6.2"
 edition = "2021"
 description = "Main network-plane of atm0s-sdn"
 license = "MIT"
@@ -10,7 +10,7 @@ license = "MIT"
 [dependencies]
 atm0s-sdn-utils = { path = "../core/utils", version = "0.2.1" }
 atm0s-sdn-identity = { path = "../core/identity", version = "0.3.1" }
-atm0s-sdn-router = { path = "../core/router", version = "0.2.3" }
+atm0s-sdn-router = { path = "../core/router", version = "0.2.4" }
 sans-io-runtime = { workspace = true, default-features = false }
 rand = { workspace = true }
 mockall = { workspace = true }

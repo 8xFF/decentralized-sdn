@@ -1,6 +1,6 @@
 [package]
 name = "atm0s-sdn-router"
-version = "0.2.3"
+version = "0.2.4"
 edition = "2021"
 description = "Router interface for atm0s-sdn"
 license = "MIT"

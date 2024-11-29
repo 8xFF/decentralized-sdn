@@ -14,7 +14,7 @@ signal-hook = "0.3.17"
 log.workspace = true
 clap.workspace = true
 serde.workspace = true
-atm0s-sdn = { path = "../packages/runner", version = "0.2.4", features = ["vpn"] }
+atm0s-sdn = { path = "../packages/runner", version = "0.2.5", features = ["vpn"] }
 tokio = { version = "1", features = ["full"] }
 poem = { version = "3.0", features = ["embed", "static-files", "websocket"] }
 rust-embed = { version = "8.2", optional = true }

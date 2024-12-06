@@ -4,7 +4,7 @@ use atm0s_sdn_network::{
     base::{Service, ServiceBuilder, ServiceCtx, ServiceInput, ServiceOutput, ServiceSharedInput, ServiceWorker, ServiceWorkerCtx, ServiceWorkerInput, ServiceWorkerOutput},
     features::{
         alias::{self, FoundLocation},
-        FeaturesControl, FeaturesEvent,
+        neighbours, FeaturesControl, FeaturesEvent,
     },
     ExtIn, ExtOut,
 };
@@ -151,7 +151,7 @@ fn feature_alias_two_nodes() {
     let _addr1 = sim.add_node(TestNode::new(node1, 1234, vec![Arc::new(MockServiceBuilder)]));
     let addr2 = sim.add_node(TestNode::new(node2, 1235, vec![Arc::new(MockServiceBuilder)]));
 
-    sim.control(node1, ExtIn::ConnectTo(addr2));
+    sim.control(node1, ExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(addr2, false))));
 
     // For sync
     for _i in 0..4 {
@@ -187,7 +187,7 @@ fn feature_alias_three_nodes() {
     let _addr1 = sim.add_node(TestNode::new(node1, 1234, vec![Arc::new(MockServiceBuilder)]));
     let addr2 = sim.add_node(TestNode::new(node2, 1235, vec![Arc::new(MockServiceBuilder)]));
 
-    sim.control(node1, ExtIn::ConnectTo(addr2));
+    sim.control(node1, ExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(addr2, false))));
 
     // For sync
     for _i in 0..4 {
@@ -202,7 +202,7 @@ fn feature_alias_three_nodes() {
     sim.process(10);
 
     let addr3 = sim.add_node(TestNode::new(node3, 1236, vec![Arc::new(MockServiceBuilder)]));
-    sim.control(node2, ExtIn::ConnectTo(addr3));
+    sim.control(node1, ExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(addr3, false))));
 
     // For sync
     for _i in 0..4 {

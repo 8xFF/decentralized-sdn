@@ -96,7 +96,7 @@ impl Registry {
 
     pub fn apply_sync(&mut self, conn: ConnId, metric: Metric, sync: RegistrySync) {
         let src = metric.over_node();
-        log::debug!("apply sync from {} -> {}, sync {:?}", src, self.node_id, sync.0);
+        log::debug!("[Registry] apply sync from {} -> {}, sync {:?}", src, self.node_id, sync.0);
         let mut cached: HashMap<u8, Metric> = HashMap::new();
         for (index, s_metric) in sync.0 {
             cached.insert(index, s_metric.add(&metric));

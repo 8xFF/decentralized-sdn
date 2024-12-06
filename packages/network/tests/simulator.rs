@@ -135,7 +135,7 @@ impl<SC: Debug, SE: Debug, TC: Debug, TW: Debug> TestNode<SC, SE, TC, TW> {
         let _log = AutoContext::new(node_id);
         let authorization: Arc<StaticKeyAuthorization> = Arc::new(StaticKeyAuthorization::new("demo-key"));
         let handshake_builder = Arc::new(HandshakeBuilderXDA);
-        let random = Box::new(StepRng::new(1000, 5));
+        let random = Box::new(StepRng::new(node_id as u64 * 1_000, 5));
         let history = Arc::new(SingleThreadDataWorkerHistory::default());
         Self {
             node_id,

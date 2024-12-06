@@ -1,5 +1,6 @@
 use atm0s_sdn_network::{
     features::{
+        neighbours,
         pubsub::{ChannelControl, ChannelEvent, ChannelId, Control, Event, Feedback},
         FeaturesControl, FeaturesEvent,
     },
@@ -113,7 +114,7 @@ fn feature_pubsub_manual_two_nodes() {
     let _addr1 = sim.add_node(TestNode::new(node1, 1234, vec![]));
     let addr2 = sim.add_node(TestNode::new(node2, 1235, vec![]));
 
-    sim.control(node1, ExtIn::ConnectTo(addr2));
+    sim.control(node1, ExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(addr2, false))));
 
     // For sync
     for _i in 0..4 {
@@ -141,7 +142,7 @@ fn feature_pubsub_auto_two_nodes() {
     let _addr1 = sim.add_node(TestNode::new(node1, 1234, vec![]));
     let addr2 = sim.add_node(TestNode::new(node2, 1235, vec![]));
 
-    sim.control(node1, ExtIn::ConnectTo(addr2));
+    sim.control(node1, ExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(addr2, false))));
 
     // For sync
     for _i in 0..4 {
@@ -184,8 +185,8 @@ fn feature_pubsub_manual_three_nodes() {
     let addr2 = sim.add_node(TestNode::new(node2, 1235, vec![]));
     let addr3 = sim.add_node(TestNode::new(node3, 1236, vec![]));
 
-    sim.control(node1, ExtIn::ConnectTo(addr2));
-    sim.control(node2, ExtIn::ConnectTo(addr3));
+    sim.control(node1, ExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(addr2, false))));
+    sim.control(node2, ExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(addr3, false))));
 
     // For sync
     for _i in 0..4 {
@@ -215,8 +216,8 @@ fn feature_pubsub_auto_three_nodes() {
     let addr2 = sim.add_node(TestNode::new(node2, 1235, vec![]));
     let addr3 = sim.add_node(TestNode::new(node3, 1236, vec![]));
 
-    sim.control(node1, ExtIn::ConnectTo(addr2));
-    sim.control(node2, ExtIn::ConnectTo(addr3));
+    sim.control(node1, ExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(addr2, false))));
+    sim.control(node2, ExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(addr3, false))));
 
     // For sync
     for _i in 0..4 {
@@ -260,8 +261,8 @@ fn feature_pubsub_auto_three_nodes_sub_after_start() {
     let addr2 = sim.add_node(TestNode::new(node2, 1235, vec![]));
     let addr3 = sim.add_node(TestNode::new(node3, 1236, vec![]));
 
-    sim.control(node1, ExtIn::ConnectTo(addr2));
-    sim.control(node2, ExtIn::ConnectTo(addr3));
+    sim.control(node1, ExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(addr2, false))));
+    sim.control(node2, ExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(addr3, false))));
 
     // For sync
     for _i in 0..4 {

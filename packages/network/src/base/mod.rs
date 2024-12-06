@@ -28,6 +28,8 @@ pub struct ConnectionStats {
 
 #[derive(Debug, Clone)]
 pub enum ConnectionEvent {
+    Connecting(ConnectionCtx),
+    ConnectError(ConnectionCtx, NeighboursConnectError),
     Connected(ConnectionCtx, SecureContext),
     Stats(ConnectionCtx, ConnectionStats),
     Disconnected(ConnectionCtx),

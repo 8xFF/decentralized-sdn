@@ -1,5 +1,5 @@
 use atm0s_sdn_network::{
-    features::{socket, FeaturesControl, FeaturesEvent},
+    features::{neighbours, socket, FeaturesControl, FeaturesEvent},
     ExtIn, ExtOut,
 };
 
@@ -44,7 +44,7 @@ fn feature_socket_two_nodes() {
     let _addr1 = sim.add_node(TestNode::new(node1, 1234, vec![]));
     let addr2 = sim.add_node(TestNode::new(node2, 1235, vec![]));
 
-    sim.control(node1, ExtIn::ConnectTo(addr2));
+    sim.control(node1, ExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(addr2, false))));
 
     // For sync
     for _i in 0..4 {
@@ -80,8 +80,8 @@ fn feature_socket_three_nodes() {
     let addr2 = sim.add_node(TestNode::new(node2, 1235, vec![]));
     let addr3 = sim.add_node(TestNode::new(node3, 1233, vec![]));
 
-    sim.control(node1, ExtIn::ConnectTo(addr2));
-    sim.control(node2, ExtIn::ConnectTo(addr3));
+    sim.control(node1, ExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(addr2, false))));
+    sim.control(node2, ExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(addr3, false))));
 
     // For sync
     for _i in 0..4 {

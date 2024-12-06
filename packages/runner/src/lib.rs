@@ -28,7 +28,6 @@ pub use time::{TimePivot, TimeTicker};
 pub use worker_inner::{SdnChannel, SdnController, SdnEvent, SdnExtIn, SdnExtOut, SdnOwner};
 
 pub trait SdnControllerUtils<UserData, SC> {
-    fn connect_to(&mut self, addr: NodeAddr);
     fn feature_control(&mut self, userdata: UserData, cmd: FeaturesControl);
     fn service_control(&mut self, service: ServiceId, userdata: UserData, cmd: SC);
 }
@@ -41,9 +40,6 @@ impl<
         TW: 'static + Send + Sync + Clone,
     > SdnControllerUtils<UserData, SC> for SdnController<UserData, SC, SE, TC, TW>
 {
-    fn connect_to(&mut self, addr: NodeAddr) {
-        self.send_to(0, SdnExtIn::ConnectTo(addr));
-    }
     fn feature_control(&mut self, userdata: UserData, cmd: FeaturesControl) {
         self.send_to(0, SdnExtIn::FeaturesControl(userdata, cmd));
     }

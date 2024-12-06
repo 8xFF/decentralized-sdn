@@ -1,6 +1,6 @@
 #![allow(clippy::bool_assert_comparison)]
 
-use atm0s_sdn_identity::{ConnId, NodeAddr, NodeId};
+use atm0s_sdn_identity::{ConnId, NodeId};
 use atm0s_sdn_router::RouteRule;
 use base::{FeatureControlActor, NeighboursControl, NetIncomingMeta, NetOutgoingMeta, SecureContext, ServiceControlActor, ServiceId};
 use data_plane::NetPair;
@@ -19,8 +19,6 @@ pub mod worker;
 
 #[derive(Debug, Clone)]
 pub enum ExtIn<UserData, ServicesControl> {
-    ConnectTo(NodeAddr),
-    DisconnectFrom(NodeId),
     FeaturesControl(UserData, FeaturesControl),
     ServicesControl(ServiceId, UserData, ServicesControl),
 }

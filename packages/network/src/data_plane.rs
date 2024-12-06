@@ -165,12 +165,6 @@ where
     pub fn on_event(&mut self, now_ms: u64, event: Input<UserData, SC, SE, TW>) {
         match event {
             Input::Ext(ext) => match ext {
-                ExtIn::ConnectTo(_remote) => {
-                    panic!("ConnectTo is not supported")
-                }
-                ExtIn::DisconnectFrom(_node) => {
-                    panic!("DisconnectFrom is not supported")
-                }
                 ExtIn::FeaturesControl(userdata, control) => {
                     let feature: Features = control.to_feature();
                     let actor = FeatureControlActor::Worker(self.worker_id, userdata);
@@ -300,6 +294,7 @@ where
                     }
                 }
                 if !pairs.is_empty() {
+                    log::debug!("Incoming broadcast from: {pair} forward to: {pairs:?}");
                     if let Some(out) = self.build_send_to_multi_from_mut(now_ms, pairs, buf) {
                         self.queue.push_back(out.into());
                     }

@@ -1,7 +1,7 @@
 use atm0s_sdn_network::{
     features::{
         dht_kv::{Control, Event, Key, Map, MapControl, MapEvent},
-        FeaturesControl, FeaturesEvent,
+        neighbours, FeaturesControl, FeaturesEvent,
     },
     ExtIn, ExtOut,
 };
@@ -75,7 +75,7 @@ fn feature_dht_kv_two_nodes() {
     let _addr1 = sim.add_node(TestNode::new(node1, 1234, vec![]));
     let addr2 = sim.add_node(TestNode::new(node2, 1235, vec![]));
 
-    sim.control(node1, ExtIn::ConnectTo(addr2));
+    sim.control(node1, ExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(addr2, false))));
 
     // For sync
     for _i in 0..4 {
@@ -106,7 +106,7 @@ fn feature_dht_kv_two_nodes_sub_after() {
     let _addr1 = sim.add_node(TestNode::new(node1, 1234, vec![]));
     let addr2 = sim.add_node(TestNode::new(node2, 1235, vec![]));
 
-    sim.control(node1, ExtIn::ConnectTo(addr2));
+    sim.control(node1, ExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(addr2, false))));
 
     // For sync
     for _i in 0..4 {
@@ -139,7 +139,7 @@ fn feature_dht_kv_move_key_other_relay() {
 
     let _addr1 = sim.add_node(TestNode::new(node1, 1234, vec![]));
     let addr2 = sim.add_node(TestNode::new(node2, 1235, vec![]));
-    sim.control(node1, ExtIn::ConnectTo(addr2));
+    sim.control(node1, ExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(addr2, false))));
 
     // For sync
     for _i in 0..4 {
@@ -163,7 +163,7 @@ fn feature_dht_kv_move_key_other_relay() {
 
     log::info!("add new node3 => data should move to node3");
     let addr3 = sim.add_node(TestNode::new(node3, 1235, vec![]));
-    sim.control(node2, ExtIn::ConnectTo(addr3));
+    sim.control(node2, ExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(addr3, false))));
 
     // For sync table
     for _i in 0..4 {

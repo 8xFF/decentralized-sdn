@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use atm0s_sdn_identity::{ConnId, NodeId};
 use atm0s_sdn_network::{
+    features::{neighbours, FeaturesControl},
     services::visualization::{self, ConnectionInfo, Control, Event, VisualizationServiceBuilder},
     ExtIn, ExtOut,
 };
@@ -62,7 +63,7 @@ fn service_visualization_simple() {
         ))
     );
 
-    sim.control(node1, ExtIn::ConnectTo(addr2));
+    sim.control(node1, ExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(addr2, false))));
 
     // For sync route table and snapshot process
     for _i in 0..5 {
@@ -117,8 +118,8 @@ fn service_visualization_multi_collectors() {
         ))
     );
 
-    sim.control(node1, ExtIn::ConnectTo(addr2));
-    sim.control(node2, ExtIn::ConnectTo(addr3));
+    sim.control(node1, ExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(addr2, false))));
+    sim.control(node2, ExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(addr3, false))));
 
     // For sync route table and snapshot process
     for _i in 0..5 {
@@ -152,8 +153,8 @@ fn service_visualization_multi_collectors() {
         node1_events,
         vec![
             node_changed(node1, node1_info.clone(), &[(node2, ConnId::from_out(0, 1000))]),
-            node_changed(node2, node2_info.clone(), &[(node3, ConnId::from_out(0, 1000)), (node1, ConnId::from_in(0, 1000))]),
-            node_changed(node3, node3_info.clone(), &[(node2, ConnId::from_in(0, 1000))]),
+            node_changed(node2, node2_info.clone(), &[(node1, ConnId::from_in(0, 1000)), (node3, ConnId::from_out(0, 2000))]),
+            node_changed(node3, node3_info.clone(), &[(node2, ConnId::from_in(0, 2000))]),
         ]
     );
 
@@ -161,8 +162,8 @@ fn service_visualization_multi_collectors() {
         node2_events,
         vec![
             node_changed(node1, node1_info, &[(node2, ConnId::from_out(0, 1000))]),
-            node_changed(node2, node2_info, &[(node3, ConnId::from_out(0, 1000)), (node1, ConnId::from_in(0, 1000))]),
-            node_changed(node3, node3_info, &[(node2, ConnId::from_in(0, 1000))]),
+            node_changed(node2, node2_info, &[(node1, ConnId::from_in(0, 1000)), (node3, ConnId::from_out(0, 2000))]),
+            node_changed(node3, node3_info, &[(node2, ConnId::from_in(0, 2000))]),
         ]
     );
 }

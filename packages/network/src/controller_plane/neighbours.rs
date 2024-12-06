@@ -68,6 +68,10 @@ impl NeighboursManager {
     pub fn on_input(&mut self, now_ms: u64, input: Input) {
         match input {
             Input::ConnectTo(addr) => {
+                if addr.node_id() == self.node_id {
+                    log::warn!("[Neighbours] Attempt to connect to self");
+                    return;
+                }
                 let dest_node = addr.node_id();
                 let dests = get_node_addr_dests(addr);
                 for local in &self.bind_addrs {
@@ -83,6 +87,7 @@ impl NeighboursManager {
                         log::info!("[Neighbours] Sending connect request from {local} to {remote}, dest_node {dest_node}");
                         let session_id = self.random.next_u64();
                         let conn = NeighbourConnection::new_outgoing(self.handshake_builder.clone(), self.node_id, dest_node, session_id, pair, now_ms);
+                        self.queue.push_back(Output::Event(base::ConnectionEvent::Connecting(conn.ctx())));
                         self.connections.insert(pair, conn);
                     }
                 }
@@ -111,6 +116,7 @@ impl NeighboursManager {
                         NeighboursControlCmds::ConnectRequest { session, .. } => {
                             let mut conn = NeighbourConnection::new_incoming(self.handshake_builder.clone(), self.node_id, control.from, session, addr, now_ms);
                             conn.on_input(now_ms, control.from, cmd);
+                            self.queue.push_back(Output::Event(base::ConnectionEvent::Connecting(conn.ctx())));
                             self.connections.insert(addr, conn);
                         }
                         _ => {
@@ -160,13 +166,9 @@ impl TaskSwitcherChild<Output> for NeighboursManager {
                                 self.neighbours.insert(ctx.conn, ctx.clone());
                                 Some(base::ConnectionEvent::Connected(ctx, SecureContext { encryptor, decryptor }))
                             }
-                            ConnectionEvent::ConnectError(_) => {
+                            ConnectionEvent::ConnectError(err) => {
                                 to_remove.push(*remote);
-                                None
-                            }
-                            ConnectionEvent::ConnectTimeout => {
-                                to_remove.push(*remote);
-                                None
+                                Some(base::ConnectionEvent::ConnectError(conn.ctx(), err))
                             }
                             ConnectionEvent::Stats(stats) => {
                                 let ctx = conn.ctx();

@@ -5,7 +5,7 @@ use atm0s_sdn_network::{
         NetIncomingMeta, NetOutgoingMeta, Service, ServiceBuilder, ServiceCtx, ServiceInput, ServiceOutput, ServiceSharedInput, ServiceWorker, ServiceWorkerCtx, ServiceWorkerInput,
         ServiceWorkerOutput,
     },
-    features::{data, FeaturesControl, FeaturesEvent},
+    features::{data, neighbours, FeaturesControl, FeaturesEvent},
     ExtIn, ExtOut,
 };
 use atm0s_sdn_router::RouteRule;
@@ -140,7 +140,7 @@ fn feature_router_sync_two_nodes() {
     let _addr1 = sim.add_node(TestNode::new(node1, 1234, vec![]));
     let addr2 = sim.add_node(TestNode::new(node2, 1235, vec![]));
 
-    sim.control(node1, ExtIn::ConnectTo(addr2));
+    sim.control(node1, ExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(addr2, false))));
 
     // For sync
     sim.process(500);
@@ -162,8 +162,8 @@ fn feature_router_sync_three_nodes() {
     let addr2 = sim.add_node(TestNode::new(node2, 1235, vec![]));
     let addr3 = sim.add_node(TestNode::new(node3, 1236, vec![]));
 
-    sim.control(node1, ExtIn::ConnectTo(addr2));
-    sim.control(node2, ExtIn::ConnectTo(addr3));
+    sim.control(node1, ExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(addr2, false))));
+    sim.control(node2, ExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(addr3, false))));
 
     // For sync
     for _i in 0..4 {

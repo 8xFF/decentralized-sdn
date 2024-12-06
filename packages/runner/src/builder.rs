@@ -12,7 +12,10 @@ use atm0s_sdn_network::{
     base::{Authorization, HandshakeBuilder, ServiceBuilder},
     features::{FeaturesControl, FeaturesEvent},
     secure::{HandshakeBuilderXDA, StaticKeyAuthorization},
-    services::{manual_discovery, visualization},
+    services::{
+        manual2_discovery::{self, AdvertiseTarget},
+        manual_discovery, visualization,
+    },
 };
 use rand::{thread_rng, RngCore};
 use sans_io_runtime::backend::Backend;
@@ -20,7 +23,7 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
     history::DataWorkerHistory,
-    worker_inner::{ControllerCfg, SdnController, SdnExtIn, SdnInnerCfg, SdnOwner, SdnWorkerInner},
+    worker_inner::{ControllerCfg, SdnController, SdnInnerCfg, SdnOwner, SdnWorkerInner},
 };
 
 pub struct SdnBuilder<UserData, SC, SE, TC, TW, NodeInfo> {
@@ -32,7 +35,6 @@ pub struct SdnBuilder<UserData, SC, SE, TC, TW, NodeInfo> {
     bind_addrs: Vec<SocketAddr>,
     tick_ms: u64,
     visualization_collector: bool,
-    seeds: Vec<NodeAddr>,
     #[allow(clippy::type_complexity)]
     services: Vec<Arc<dyn ServiceBuilder<UserData, FeaturesControl, FeaturesEvent, SC, SE, TC, TW>>>,
     #[cfg(feature = "vpn")]
@@ -66,7 +68,6 @@ where
             session: thread_rng().next_u64(),
             bind_addrs: bind_addrs.to_vec(),
             visualization_collector: false,
-            seeds: vec![],
             services: vec![],
             #[cfg(feature = "vpn")]
             vpn_enable: false,
@@ -80,10 +81,6 @@ where
 
     pub fn node_addr(&self) -> NodeAddr {
         self.node_addr.clone()
-    }
-
-    pub fn add_seed(&mut self, addr: NodeAddr) {
-        self.seeds.push(addr);
     }
 
     /// Setting authorization
@@ -104,6 +101,11 @@ where
     /// Setting manual discovery
     pub fn set_manual_discovery(&mut self, local_tags: Vec<String>, connect_tags: Vec<String>) {
         self.add_service(Arc::new(manual_discovery::ManualDiscoveryServiceBuilder::new(self.node_addr.clone(), local_tags, connect_tags)));
+    }
+
+    /// Setting manual2 discovery
+    pub fn set_manual2_discovery(&mut self, targets: Vec<AdvertiseTarget>, interval: u64) {
+        self.add_service(Arc::new(manual2_discovery::Manual2DiscoveryServiceBuilder::new(self.node_addr.clone(), targets, interval)));
     }
 
     /// panic if the service already exists
@@ -192,13 +194,6 @@ where
                 None,
             );
         }
-
-        std::thread::sleep(std::time::Duration::from_millis(100));
-
-        for seed in self.seeds {
-            controller.send_to(0, SdnExtIn::ConnectTo(seed));
-        }
-
         controller
     }
 }

@@ -117,12 +117,6 @@ where
 
     pub fn on_event(&mut self, now_ms: u64, event: Input<UserData, SC, SE, TC>) {
         match event {
-            Input::Ext(ExtIn::ConnectTo(addr)) => {
-                self.neighbours.input(&mut self.switcher).on_input(now_ms, neighbours::Input::ConnectTo(addr));
-            }
-            Input::Ext(ExtIn::DisconnectFrom(node)) => {
-                self.neighbours.input(&mut self.switcher).on_input(now_ms, neighbours::Input::DisconnectFrom(node));
-            }
             Input::Ext(ExtIn::FeaturesControl(userdata, control)) => {
                 self.features.input(&mut self.switcher).on_input(
                     &self.feature_ctx,
@@ -200,6 +194,8 @@ where
                     .input(&mut self.switcher)
                     .on_shared_input(&self.service_ctx, now_ms, ServiceSharedInput::Connection(event.clone()));
                 match event {
+                    ConnectionEvent::Connecting(_ctx) => {}
+                    ConnectionEvent::ConnectError(_ctx, _err) => {}
                     ConnectionEvent::Connected(ctx, secure) => self.queue.push_back(Output::Event(LogicEvent::Pin(ctx.conn, ctx.node, ctx.pair, secure))),
                     ConnectionEvent::Stats(_ctx, _stats) => {}
                     ConnectionEvent::Disconnected(ctx) => self.queue.push_back(Output::Event(LogicEvent::UnPin(ctx.conn))),

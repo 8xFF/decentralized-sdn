@@ -40,7 +40,6 @@ enum State {
 pub enum ConnectionEvent {
     Connected(Box<dyn Encryptor>, Box<dyn Decryptor>),
     ConnectError(NeighboursConnectError),
-    ConnectTimeout,
     Stats(ConnectionStats),
     Disconnected,
 }
@@ -50,7 +49,6 @@ impl Debug for ConnectionEvent {
         match self {
             ConnectionEvent::Connected(_, _) => write!(f, "Connected"),
             ConnectionEvent::ConnectError(err) => write!(f, "ConnectError({:?})", err),
-            ConnectionEvent::ConnectTimeout => write!(f, "ConnectTimeout"),
             ConnectionEvent::Stats(_) => write!(f, "Stats"),
             ConnectionEvent::Disconnected => write!(f, "Disconnected"),
         }
@@ -62,7 +60,6 @@ impl PartialEq for ConnectionEvent {
         match (self, other) {
             (ConnectionEvent::Connected(_, _), ConnectionEvent::Connected(_, _)) => true,
             (ConnectionEvent::ConnectError(err1), ConnectionEvent::ConnectError(err2)) => err1 == err2,
-            (ConnectionEvent::ConnectTimeout, ConnectionEvent::ConnectTimeout) => true,
             (ConnectionEvent::Stats(_), ConnectionEvent::Stats(_)) => true,
             (ConnectionEvent::Disconnected, ConnectionEvent::Disconnected) => true,
             _ => false,
@@ -151,7 +148,7 @@ impl NeighbourConnection {
             State::OutgoingWait { at_ms, requester } => {
                 if now_ms - *at_ms >= CONNECT_TIMEOUT_MS {
                     self.state = State::ConnectTimeout;
-                    self.output.push_back(Output::Event(ConnectionEvent::ConnectTimeout));
+                    self.output.push_back(Output::Event(ConnectionEvent::ConnectError(NeighboursConnectError::Timeout)));
                     log::warn!("[NeighbourConnection] Connection timeout to {} after {} ms", self.pair, CONNECT_TIMEOUT_MS);
                 } else if now_ms - *at_ms >= RETRY_CMD_MS {
                     if let Ok(request_buf) = requester.create_public_request() {
@@ -172,7 +169,7 @@ impl NeighbourConnection {
             State::IncomingWait { at_ms } => {
                 if now_ms - *at_ms >= CONNECT_TIMEOUT_MS {
                     self.state = State::ConnectTimeout;
-                    self.output.push_back(Output::Event(ConnectionEvent::ConnectTimeout));
+                    self.output.push_back(Output::Event(ConnectionEvent::ConnectError(NeighboursConnectError::Timeout)));
                     log::warn!("[NeighbourConnection] Connection timeout from {} after {} ms", self.pair, CONNECT_TIMEOUT_MS);
                 }
             }

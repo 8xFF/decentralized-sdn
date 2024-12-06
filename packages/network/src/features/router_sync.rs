@@ -58,6 +58,7 @@ impl<UserData> RouterSyncFeature<UserData> {
 
     fn send_sync_to(router: &Router, queue: &mut VecDeque<Output<UserData>>, conn: ConnId, node: NodeId) {
         let sync = router.create_sync(node);
+        log::debug!("[RouterSync] send sync to {node} content {sync:?}");
         queue.push_back(FeatureOutput::SendDirect(
             conn,
             NetOutgoingMeta::new(false, 1.into(), 0, true),
@@ -85,6 +86,8 @@ impl<UserData> Feature<UserData, Control, Event, ToController, ToWorker> for Rou
                 }
             }
             FeatureSharedInput::Connection(event) => match event {
+                ConnectionEvent::Connecting(_ctx) => {}
+                ConnectionEvent::ConnectError(_ctx, _err) => {}
                 ConnectionEvent::Connected(ctx, _) => {
                     log::info!("[RouterSync] Connection {} connected", ctx.pair);
                     let metric = Metric::new(INIT_RTT_MS, vec![ctx.node], INIT_BW);
@@ -120,8 +123,9 @@ impl<UserData> Feature<UserData, Control, Event, ToController, ToWorker> for Rou
                     log::warn!("[RouterSync] reject unsecure message");
                     return;
                 }
-                if let Some((_node, _remote, metric)) = self.conns.get(&ctx.conn) {
+                if let Some((node, remote, metric)) = self.conns.get(&ctx.conn) {
                     if let Ok(sync) = bincode::deserialize::<RouterSync>(&buf) {
+                        log::debug!("[RouterSync] Receive sync from {node} {remote:?}");
                         self.router.apply_sync(ctx.conn, metric.clone(), sync);
                     } else {
                         log::warn!("[RouterSync] Receive invalid sync from {}", ctx.pair);

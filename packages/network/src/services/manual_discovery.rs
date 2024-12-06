@@ -76,8 +76,8 @@ impl<UserData, SC, SE, TC, TW> ManualDiscoveryService<UserData, SC, SE, TC, TW> 
             self.last_retry_ms = now;
             for (node, addr) in self.nodes.iter() {
                 if !self.conns.contains_key(node) {
-                    log::info!("ManualDiscoveryService node {node} not connected, retry connect");
-                    self.queue.push_back(neighbour_control(NeighbourControl::ConnectTo(addr.clone())));
+                    log::warn!("ManualDiscoveryService node {node} not connected, retry connect");
+                    self.queue.push_back(neighbour_control(NeighbourControl::ConnectTo(addr.clone(), false)));
                 }
             }
         }
@@ -140,7 +140,7 @@ impl<UserData, SC, SE, TC: Debug, TW: Debug> Service<UserData, FeaturesControl, 
                     if let Some(addr) = NodeAddr::from_vec(&value) {
                         log::info!("ManualDiscoveryService node {source} added tag {map} => connect {addr}");
                         self.nodes.insert(source, addr.clone());
-                        self.queue.push_back(neighbour_control(NeighbourControl::ConnectTo(addr)));
+                        self.queue.push_back(neighbour_control(NeighbourControl::ConnectTo(addr, false)));
                         self.removing_list.remove(&source);
                     }
                 }
@@ -305,7 +305,7 @@ mod test {
         assert_eq!(service.pop_output2(0), Some(map_cmd(connect_map, MapControl::Sub)));
 
         service.on_input(&ctx, 100, map_event(connect_map, MapEvent::OnSet(Key(1), 2, addr2.to_vec())));
-        assert_eq!(service.pop_output2(100), Some(neighbour_cmd(neighbours::Control::ConnectTo(addr2))));
+        assert_eq!(service.pop_output2(100), Some(neighbour_cmd(neighbours::Control::ConnectTo(addr2, false))));
     }
 
     #[test]
@@ -323,7 +323,7 @@ mod test {
 
         // add node
         service.on_input(&ctx, 100, map_event(connect_map, MapEvent::OnSet(Key(1), addr2.node_id(), addr2.to_vec())));
-        assert_eq!(service.pop_output2(100), Some(neighbour_cmd(neighbours::Control::ConnectTo(addr2.clone()))));
+        assert_eq!(service.pop_output2(100), Some(neighbour_cmd(neighbours::Control::ConnectTo(addr2.clone(), false))));
 
         // fake connected
         service.on_input(&ctx, 110, neighbour_event(neighbours::Event::Connected(addr2.node_id(), ConnId::from_out(0, 0))));
@@ -356,7 +356,7 @@ mod test {
         assert_eq!(service.pop_output2(0), Some(map_cmd(connect_map, MapControl::Sub)));
 
         service.on_input(&ctx, 100, map_event(connect_map, MapEvent::OnSet(Key(1), 2, addr2.to_vec())));
-        assert_eq!(service.pop_output2(100), Some(neighbour_cmd(neighbours::Control::ConnectTo(addr2.clone()))));
+        assert_eq!(service.pop_output2(100), Some(neighbour_cmd(neighbours::Control::ConnectTo(addr2.clone(), false))));
 
         service.on_shared_input(&ctx, 200, ServiceSharedInput::Tick(0));
         assert_eq!(service.pop_output2(200), None);
@@ -367,7 +367,7 @@ mod test {
         assert_eq!(service.pop_output2(300), None);
 
         service.on_shared_input(&ctx, RETRY_CONNECT_MS, ServiceSharedInput::Tick(0));
-        assert_eq!(service.pop_output2(RETRY_CONNECT_MS), Some(neighbour_cmd(neighbours::Control::ConnectTo(addr2.clone()))));
+        assert_eq!(service.pop_output2(RETRY_CONNECT_MS), Some(neighbour_cmd(neighbours::Control::ConnectTo(addr2.clone(), false))));
         assert_eq!(service.pop_output2(RETRY_CONNECT_MS), None);
     }
 }

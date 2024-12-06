@@ -11,7 +11,10 @@ use std::{
     time::Duration,
 };
 
-use atm0s_sdn::{SdnBuilder, SdnOwner};
+use atm0s_sdn::{
+    features::{neighbours, FeaturesControl},
+    SdnBuilder, SdnExtIn, SdnOwner,
+};
 
 #[derive(Debug, Clone, ValueEnum)]
 enum BackendType {
@@ -86,14 +89,14 @@ fn main() {
         builder.enable_vpn();
     }
 
-    for seed in args.seeds {
-        builder.add_seed(seed);
-    }
-
     let mut controller = match args.backend {
         BackendType::Poll => builder.build::<PollBackend<SdnOwner, 128, 128>>(args.workers, args.node_id),
         BackendType::Polling => builder.build::<PollingBackend<SdnOwner, 128, 128>>(args.workers, args.node_id),
     };
+
+    for seed in args.seeds {
+        controller.send_to(0, SdnExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(seed, true))));
+    }
 
     while controller.process().is_some() {
         if term.load(Ordering::Relaxed) {

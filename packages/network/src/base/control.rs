@@ -12,6 +12,7 @@ pub enum NeighboursConnectError {
     InvalidSignature,
     InvalidData,
     InvalidState,
+    Timeout,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]

@@ -6,7 +6,7 @@ use std::{
 use atm0s_sdn::{
     features::{
         dht_kv::{self, MapControl, MapEvent},
-        FeaturesControl, FeaturesEvent,
+        neighbours, FeaturesControl, FeaturesEvent,
     },
     secure::StaticKeyAuthorization,
     services::visualization,
@@ -80,7 +80,7 @@ fn test_two_nodes() {
     let (mut node1, node_addr1) = build_node(node1_id, 11000);
     let (mut node2, _node_addr2) = build_node(node2_id, 11001);
 
-    node2.connect_to(node_addr1);
+    node2.feature_control((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(node_addr1, false)));
 
     process(&mut [&mut node1, &mut node2], 100);
     log::info!("sending map cmd Sub");
@@ -103,8 +103,8 @@ fn test_three_nodes() {
     let (mut node2, node_addr2) = build_node(node2_id, 12001);
     let (mut node3, _node_addr3) = build_node(node3_id, 12002);
 
-    node2.connect_to(node_addr1);
-    node3.connect_to(node_addr2);
+    node2.feature_control((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(node_addr1, false)));
+    node3.feature_control((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(node_addr2, false)));
 
     process(&mut [&mut node1, &mut node2, &mut node3], 100);
     log::info!("sending map cmd Sub");

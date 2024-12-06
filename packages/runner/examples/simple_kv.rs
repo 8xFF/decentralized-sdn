@@ -18,7 +18,7 @@ use std::{
     time::Duration,
 };
 
-use atm0s_sdn::{SdnBuilder, SdnExtIn, SdnOwner};
+use atm0s_sdn::{features::neighbours, SdnBuilder, SdnExtIn, SdnOwner};
 
 #[derive(Debug, Clone, ValueEnum)]
 enum BackendType {
@@ -82,14 +82,14 @@ fn main() {
     let mut builder = SdnBuilder::<(), SC, SE, TC, TW, UserInfo>::new(args.node_id, &[args.bind_addr], vec![]);
     builder.set_authorization(StaticKeyAuthorization::new(&args.password));
 
-    for seed in args.seeds {
-        builder.add_seed(seed);
-    }
-
     let mut controller = match args.backend {
         BackendType::Poll => builder.build::<PollBackend<SdnOwner, 128, 128>>(args.workers, args.node_id),
         BackendType::Polling => builder.build::<PollingBackend<SdnOwner, 128, 128>>(args.workers, args.node_id),
     };
+
+    for seed in args.seeds {
+        controller.send_to(0, SdnExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(seed, true))));
+    }
 
     if args.kv_subscribe {
         controller.send_to(0, SdnExtIn::FeaturesControl((), FeaturesControl::DhtKv(Control::MapCmd(Map(args.kv_map), MapControl::Sub))));

@@ -1,13 +1,14 @@
 #![allow(clippy::bool_assert_comparison)]
 
-use atm0s_sdn::features::{router_sync, FeaturesEvent};
+use atm0s_sdn::features::{neighbours, router_sync, FeaturesControl, FeaturesEvent};
 use atm0s_sdn::secure::StaticKeyAuthorization;
+use atm0s_sdn::services::manual2_discovery::AdvertiseTarget;
 use atm0s_sdn::services::visualization;
 use atm0s_sdn::{
     sans_io_runtime::backend::{PollBackend, PollingBackend},
     services::visualization::ConnectionInfo,
 };
-use atm0s_sdn::{NodeAddr, NodeId, SdnControllerUtils};
+use atm0s_sdn::{NodeAddr, NodeId, SdnControllerUtils, SdnExtIn, ServiceBroadcastLevel};
 use atm0s_sdn::{SdnBuilder, SdnExtOut, SdnOwner};
 use clap::{Parser, ValueEnum};
 use futures_util::{SinkExt, StreamExt};
@@ -88,14 +89,6 @@ struct Args {
     /// Custom IP
     #[arg(env, long)]
     custom_addrs: Vec<SocketAddr>,
-
-    /// Local tags
-    #[arg(env, long)]
-    local_tags: Vec<String>,
-
-    /// Connect tags
-    #[arg(env, long)]
-    connect_tags: Vec<String>,
 
     /// Web server addr
     #[arg(env, long, default_value = "0.0.0.0:3000")]
@@ -261,6 +254,7 @@ async fn dump_router(ctx: Data<&UnboundedSender<oneshot::Sender<serde_json::Valu
     }
 }
 
+#[allow(clippy::collapsible_match)]
 #[tokio::main]
 async fn main() {
     if std::env::var_os("RUST_LOG").is_none() {
@@ -271,22 +265,11 @@ async fn main() {
     let mut shutdown_wait = 0;
     let args = Args::parse();
     tracing_subscriber::fmt::init();
-    let addrs = local_ip_address::list_afinet_netifas()
-        .expect("Should have list interfaces")
-        .into_iter()
-        .filter(|(_, ip)| {
-            if ip.is_unspecified() || ip.is_multicast() {
-                false
-            } else {
-                std::net::UdpSocket::bind(SocketAddr::new(*ip, 0)).is_ok()
-            }
-        })
-        .map(|(_name, ip)| SocketAddr::new(ip, args.udp_port))
-        .collect::<Vec<_>>();
+    let addrs = vec![SocketAddr::new(local_ip_address::local_ip().expect("Should have list interfaces"), args.udp_port)];
     let mut builder = SdnBuilder::<(), SC, SE, TC, TW, VisualNodeInfo>::new(args.node_id, &addrs, args.custom_addrs);
 
     builder.set_authorization(StaticKeyAuthorization::new(&args.password));
-    builder.set_manual_discovery(args.local_tags, args.connect_tags);
+    builder.set_manual2_discovery(vec![AdvertiseTarget::new(2.into(), ServiceBroadcastLevel::Global)], 1000);
 
     if args.vpn {
         builder.enable_vpn();
@@ -294,15 +277,15 @@ async fn main() {
 
     builder.set_visualization_collector(args.collector);
 
-    for seed in args.seeds {
-        builder.add_seed(seed);
-    }
-
     let node_info = VisualNodeInfo { uptime: 0 };
     let mut controller = match args.backend {
         BackendType::Poll => builder.build::<PollBackend<SdnOwner, 128, 128>>(args.workers, node_info),
         BackendType::Polling => builder.build::<PollingBackend<SdnOwner, 128, 128>>(args.workers, node_info),
     };
+
+    for seed in args.seeds.iter() {
+        controller.send_to(0, SdnExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(seed.clone(), true))));
+    }
 
     let (dump_tx, mut dump_rx) = unbounded_channel::<oneshot::Sender<serde_json::Value>>();
     let ctx = Arc::new(Mutex::new(WebsocketCtx::new()));
@@ -368,18 +351,24 @@ async fn main() {
                         ctx.lock().await.del_node(node);
                     }
                 },
-                SdnExtOut::FeaturesEvent(_, event) => {
-                    if let FeaturesEvent::RouterSync(event) = event {
-                        match event {
-                            router_sync::Event::DumpRouter(value) => {
-                                let json = serde_json::to_value(value).expect("should convert json");
-                                while let Some(v) = wait_dump_router.pop() {
-                                    let _ = v.send(json.clone());
-                                }
+                SdnExtOut::FeaturesEvent(_, event) => match event {
+                    FeaturesEvent::RouterSync(event) => match event {
+                        router_sync::Event::DumpRouter(value) => {
+                            let json = serde_json::to_value(value).expect("should convert json");
+                            while let Some(v) = wait_dump_router.pop() {
+                                let _ = v.send(json.clone());
+                            }
+                        }
+                    },
+                    FeaturesEvent::Neighbours(event) => {
+                        if let neighbours::Event::SeedAddressNeeded = event {
+                            for seed in args.seeds.iter() {
+                                controller.send_to(0, SdnExtIn::FeaturesControl((), FeaturesControl::Neighbours(neighbours::Control::ConnectTo(seed.clone(), true))));
                             }
                         }
                     }
-                }
+                    _ => {}
+                },
             }
         }
         tokio::time::sleep(Duration::from_millis(10)).await;

@@ -149,6 +149,8 @@ where
                     )));
                 }
             }
+            ServiceSharedInput::Connection(ConnectionEvent::Connecting(_ctx)) => {}
+            ServiceSharedInput::Connection(ConnectionEvent::ConnectError(_ctx, _err)) => {}
             ServiceSharedInput::Connection(ConnectionEvent::Connected(ctx, _)) => {
                 log::info!("[Visualization] New connection from {} to {}, set default rtt_ms to 1000ms", ctx.pair, ctx.node);
                 self.conns.insert(
